@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>tutorial Angular Material</title>
+    <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css">
+    <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
+    <style>
+        html, body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /** Enabled Step 3... */
+
+        md-toolbar h3 {
+            margin: auto;
+            font-weight: 500;
+        }
+
+        md-list-item > button {
+            width: 100%;
+            text-align: left !important;
+        }
+
+        #content {
+            padding-left: 40px;
+            padding-right: 40px;
+            padding-top: 5px;
+        }
+
+        #content .share {
+            background-color: transparent;
+            border: none;
+            width: 48px;
+            height: 48px;
+            margin: 8px auto 16px 0;
+            position: absolute;
+            top: 10px;
+            right: 40px;
+        }
+
+        #content .md-button.share > md-icon {
+            fill: black;
+            width: 36px;
+            height: 36px;
+        }
+
+        #content .md-button.share:active > md-icon {
+            background-color: #dadada;
+            border-radius: 75%;
+            padding: 4px;
+            transition: all 100ms ease-out 30ms;
+        }
+
+        .avatar {
+            position: relative;
+            width: 128px;
+            height: 128px;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            display: inline-block;
+            overflow: hidden;
+            margin: 0;
+            vertical-align: middle;
+            zoom: 0.70;
+            transform: translateZ(0);
+            -webkit-transform: scale(0.70);
+            -moz-transform: scale(0.70);
+        }
+
+        .menu {
+            background-color: transparent;
+            border: none;
+            height: 38px;
+            margin: 16px;
+            width: 36px;
+        }
+    </style>
+</head>
+<body ng-app="AngularMaterialApp" layout="column" ng-controller="UsuarioController as ul">
+
+<!-- contenedor 1-->
+<md-toolbar layout="row">
+    <md-button class="menu" hide-gt-sm ng-click="ul.mostrarLista()" aria-label="Mostrar Lista de Usuarios">
+        <md-icon md-svg-icon="menu"></md-icon>
+    </md-button>
+    <h3>Aplicación Angular Material</h3>
+</md-toolbar>
+
+<!--contenedor 2-->
+<div flex layout="row">
+
+    <!-- Contenedor 3-->
+    <md-sidenav md-is-locked-open="$mdMedia('gt-sm')"
+                class="md-whiteframe-4dp"
+                md-component-id="left"
+                ng-click="ul.mostrarLista()">
+        <md-list>
+            <!-- Item 1-->
+            <md-list-item ng-repeat="u in ul.usuarios">
+                <md-button ng-click="ul.seleccionarUsuario(u)" ng-class="{'selected':u === u.seleccionado}">
+                    <md-icon md-svg-icon="{{u.avatar}}" class="avatar"></md-icon>
+                    {{u.nombre}}
+                </md-button>
+            </md-list-item>
+        </md-list>
+    </md-sidenav>
+
+    <!--contenedor 4-->
+    <md-content flex id="content">
+        <md-icon md-svg-icon="{{ul.seleccionado.avatar}}" class="avatar"></md-icon>
+        <h2>{{ul.seleccionado.nombre}}</h2>
+
+        <p>{{ul.seleccionado.contenido}}</p>
+        <md-button class="share" md-no-ink ng-click="ul.crearContacto(ul.seleccionado)" aria-label="Compartir con {{ ul.seleccionado.nombre}}">
+            <md-icon md-svg-icon="share"></md-icon>
+        </md-button>
+    </md-content>
+</div>
+
+
+<script src="../node_modules/angular/angular.js"></script>
+<script src="../node_modules/angular-animate/angular-animate.js"></script>
+<script src="../node_modules/angular-aria/angular-aria.js"></script>
+<script src="../node_modules/angular-material/angular-material.js"></script>
+
+<!--<script src="src/usuarios/Usuarios.js"></script>-->
+<!--<script src="src/usuarios/UsuarioController.js"></script>-->
+<!--<script src="src/usuarios/UsuarioService.js"></script>-->
+<script>
+    angular
+            .module("AngularMaterialApp", ["ngMaterial"])
+            .controller("UsuarioController", ["usuarioService", "$mdBottomSheet", "$mdSidenav", "$log", "$q", UsuarioController])
+            .service("usuarioService", ["$q", UsuarioService])
+            .config(Config)
+            .run(function ($log) {
+                $log.debug("Aplicación lista!");
+            });
+
+    function Config($mdThemingProvider, $mdIconProvider) {
+        $mdThemingProvider.theme('default')
+                .primaryPalette("green")
+                .accentPalette("red");
+
+        $mdIconProvider.defaultIconSet("https://rawgit.com/angular/material-start/es5-tutorial/app/assets/svg/avatars.svg", 128);
+        $mdIconProvider.icon("share", "./assets/svg/share.svg", 24);
+        $mdIconProvider.icon("menu", "./assets/svg/menu.svg", 24);
+    }
+
+    function UsuarioController(usuarioService, $mdBottomSheet, $mdSidenav) {
+        var self = this;
+        self.usuarios = [];
+        self.seleccionado = null;
+        self.seleccionarUsuario = seleccionarUsuario;
+        self.crearContacto = crearContacto;
+        self.mostrarLista = mostrarLista;
+
+        usuarioService.cargarUsuarios().then(function (usuarios) {
+            self.usuarios = [].concat(usuarios);
+            self.seleccionado = usuarios[0];
+        });
+
+        /**
+         * Selecciona un usuario
+         * @param usuario usuario
+         */
+        function seleccionarUsuario(usuario) {
+            self.seleccionado = usuario;
+        }
+
+        /**
+         * Crea un contacto
+         * @param usuario  usuario
+         */
+        function crearContacto(usuario) {
+            var appRoot = 'https://rawgit.com/angular/material-start/es5-tutorial/app/';
+            $mdBottomSheet.show({
+                controllerAs: "cp",
+                controller: ["$mdBottomSheet", HojaDeContactosController],
+                templateUrl: './src/usuarios/vista/hojaContacto.html',
+                parent: angular.element(document.getElementById("content"))
+
+            });
+            function HojaDeContactosController($mdBottomSheet) {
+                var rootUrl = appRoot + "assets/svg/";
+                this.usuario = usuario;
+                this.acciones = [
+                    {nombre: 'Telefono', icono: 'phone', icono_url: 'assets/svg/phone.svg'},
+                    {nombre: 'Twitter', icono: 'twitter', icono_url: 'assets/svg/twitter.svg'},
+                    {nombre: 'Google+', icono: 'google_plus', icono_url: 'assets/svg/google_plus.svg'},
+                    {nombre: 'Hangout', icono: 'Hangouts', icono_url: 'assets/svg/hangouts.svg'}
+                ];
+                this.contactarUsuario = function (accion) {
+                    $mdBottomSheet.hide(accion);
+                };
+            }
+        }
+
+        /**
+         * Muestra u oculta la lista de usuarios
+         */
+        function mostrarLista() {
+            $mdSidenav("left").toggle();
+        }
+    }
+
+    function UsuarioService($q) {
+        var usuarios = [
+            {
+                "nombre": "Anyul Rivas",
+                "avatar": "svg-1",
+                "contenido": "I love cheese, especially airedale queso. Cheese and biscuits halloumi cauliflower cheese cottage cheese swiss boursin fondue caerphilly. Cow port-salut camembert de normandie macaroni cheese feta who moved my cheese babybel boursin. Red leicester roquefort boursin squirty cheese jarlsberg blue castello caerphilly chalk and cheese. Lancashire."
+            },
+            {
+                "nombre": "Maria Carolina Fonseca",
+                "avatar": "svg-2",
+                "contenido": "Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit​​, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris."
+            },
+            {
+                "nombre": "Gabriel Vegas",
+                "avatar": "svg-3",
+                "contenido": "Raw denim pour-over readymade Etsy Pitchfork. Four dollar toast pickled locavore bitters McSweeney's blog. Try-hard art party Shoreditch selfies. Odd Future butcher VHS, disrupt pop-up Thundercats chillwave vinyl jean shorts taxidermy master cleanse letterpress Wes Anderson mustache Helvetica. Schlitz bicycle rights chillwave irony lumberhungry Kickstarter next level sriracha typewriter Intelligentsia, migas kogi heirloom tousled. Disrupt 3 wolf moon lomo four loko. Pug mlkshk fanny pack literally hoodie bespoke, put a bird on it Marfa messenger bag kogi VHS."
+            },
+            {
+                "nombre": "Liliana Bernal",
+                "avatar": "svg-4",
+                "contenido": "Scratch the furniture spit up on light gray carpet instead of adjacent linoleum so eat a plant, kill a hand pelt around the house and up and down stairs chasing phantoms run in circles, or claw drapes. Always hungry pelt around the house and up and down stairs chasing phantoms."
+            },
+            {
+                "nombre": "Sandra Mendoza",
+                "avatar": "svg-5",
+                "contenido": "Webtwo ipsum dolor sit amet, eskobo chumby doostang bebo. Bubbli greplin stypi prezi mzinga heroku wakoopa, shopify airbnb dogster dopplr gooru jumo, reddit plickers edmodo stypi zillow etsy."
+            },
+            {
+                "nombre": "Carlos Guerra",
+                "avatar": "svg-6",
+                "contenido": "Lebowski ipsum yeah? What do you think happens when you get rad? You turn in your library card? Get a new driver's license? Stop being awesome? Dolor sit amet, consectetur adipiscing elit praesent ac magna justo pellentesque ac lectus. You don't go out and make a living dressed like that in the middle of a weekday. Quis elit blandit fringilla a ut turpis praesent felis ligula, malesuada suscipit malesuada."
+            }
+        ];
+        //API basada en promise
+        return {
+            cargarUsuarios: function () {
+                //Simular llamada asincrona
+                return $q.when(usuarios);
+            }
+        }
+    }
+
+</script>
+</body>
+</html>

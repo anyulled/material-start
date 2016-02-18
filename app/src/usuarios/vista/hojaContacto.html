@@ -1,0 +1,13 @@
+<md-bottom-sheet>
+    <md-subheader>
+        Contactar a <span class="name">{{cp.usuario.nombre}}</span>
+    </md-subheader>
+    <md-list>
+        <md-list-item ng-repeat="item in cp.acciones">
+            <md-button ng-click="cp.contactarUsuario(item)" id="item_{{$index}}">
+                <md-icon md-svg-icon="{{item.icono_url}}"></md-icon>
+                {{item.nombre}}
+            </md-button>
+        </md-list-item>
+    </md-list>
+</md-bottom-sheet>
